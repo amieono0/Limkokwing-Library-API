@@ -6,7 +6,7 @@ import asyncio
 
 app = FastAPI(title="Limkokwing Library API", description="API for library management system")
 
-#   DATA MODELS (Type annotations) 
+#  DATA MODELS  
 class Book(BaseModel):
     id: int
     title: str
@@ -20,11 +20,7 @@ class User(BaseModel):
     username: str
     fines: float = 0.0
 
-class BorrowRequest(BaseModel):
-    username: str
-    book_id: int
-
-#   SAMPLE DATABASE 
+# SAMPLE DATABASE  
 books: List[Book] = [
     Book(id=1, title="Python Programming", author="John Doe", category="Programming", available=True, borrowed_by=None, due_date=None),
     Book(id=2, title="Data Science 101", author="Jane Smith", category="Data Science", available=True, borrowed_by=None, due_date=None),
@@ -36,7 +32,7 @@ users: List[User] = [
     User(username="student2", fines=0.0),
 ]
 
-#  HELPER FUNCTIONS  
+# HELPER FUNCTIONS  
 def calculate_fine(due_date_str: str) -> float:
     """Calculate fine at $0.50 per day overdue"""
     due_date = datetime.fromisoformat(due_date_str)
@@ -45,22 +41,20 @@ def calculate_fine(due_date_str: str) -> float:
         return days_overdue * 0.50
     return 0.0
 
-#  PART A: ENDPOINTS  
+#  ENDPOINTS 
 
-# 1. Home route
+# Home route
 @app.get("/")
 async def home() -> dict:
-    """Welcome endpoint"""
     return {"message": "Welcome to Limkokwing Library API", "status": "running"}
 
-# 2. Search books by title, author, or category (GET /books)
+# Search books by title, author, or category
 @app.get("/books")
 async def search_books(
-    title: Optional[str] = Query(None, description="Search by title"),
-    author: Optional[str] = Query(None, description="Search by author"),
-    category: Optional[str] = Query(None, description="Search by category")
+    title: Optional[str] = Query(None),
+    author: Optional[str] = Query(None),
+    category: Optional[str] = Query(None)
 ) -> List[Book]:
-    """Search for books by title, author, or category"""
     results = books
     
     if title:
@@ -71,20 +65,19 @@ async def search_books(
         results = [b for b in results if category.lower() in b.category.lower()]
     
     if not results:
-        raise HTTPException(status_code=404, detail="No books found matching your criteria")
+        raise HTTPException(status_code=404, detail="No books found")
     
     return results
 
-# 3. Borrow a book (POST /borrow) - Async for multiple users
+# Borrow a book
 @app.post("/borrow")
-async def borrow_book(request: BorrowRequest) -> dict:
-    """Borrow a book - supports multiple users simultaneously"""
+async def borrow_book(username: str, book_id: int) -> dict:
+    """Borrow a book"""
     
-    # Simulate async database operation
-    await asyncio.sleep(0.1)  # Simulates network/database delay
+    await asyncio.sleep(0.1)
     
     # Find the book
-    book = next((b for b in books if b.id == request.book_id), None)
+    book = next((b for b in books if b.id == book_id), None)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     
@@ -93,7 +86,7 @@ async def borrow_book(request: BorrowRequest) -> dict:
         raise HTTPException(status_code=400, detail="Book already borrowed")
     
     # Find user
-    user = next((u for u in users if u.username == request.username), None)
+    user = next((u for u in users if u.username == username), None)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -102,24 +95,24 @@ async def borrow_book(request: BorrowRequest) -> dict:
         raise HTTPException(status_code=400, detail=f"User has outstanding fines: ${user.fines}")
     
     # Borrow the book
-    due_date = datetime.now() + timedelta(days=14)  # 2 weeks loan period
+    due_date = datetime.now() + timedelta(days=14)
     book.available = False
-    book.borrowed_by = request.username
+    book.borrowed_by = username
     book.due_date = due_date.isoformat()
     
     return {
         "message": "Book borrowed successfully",
         "book_title": book.title,
-        "borrowed_by": request.username,
+        "borrowed_by": username,
         "due_date": book.due_date
     }
 
-# 4. Return a book and calculate fines (POST /return)
+# Return a book
 @app.post("/return")
 async def return_book(book_id: int, username: str) -> dict:
-    """Return a book and calculate any overdue fines"""
+    """Return a book"""
     
-    await asyncio.sleep(0.1)  # Simulate async operation
+    await asyncio.sleep(0.1)
     
     book = next((b for b in books if b.id == book_id), None)
     if not book:
@@ -150,10 +143,9 @@ async def return_book(book_id: int, username: str) -> dict:
         "total_fines_owed": next((u.fines for u in users if u.username == username), 0)
     }
 
-# 5. Track overdue books and fines (GET /overdue)
+# Get overdue books
 @app.get("/overdue")
 async def get_overdue_books() -> List[dict]:
-    """Get all overdue books and their fines"""
     overdue_books = []
     
     for book in books:
@@ -170,10 +162,9 @@ async def get_overdue_books() -> List[dict]:
     
     return overdue_books
 
-# 6. View user fines (GET /fines/{username})
+# Get user fines
 @app.get("/fines/{username}")
 async def get_user_fines(username: str) -> dict:
-    """Check a user's outstanding fines"""
     user = next((u for u in users if u.username == username), None)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
