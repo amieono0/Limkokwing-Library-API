@@ -25,3 +25,8 @@ Desktop.ini
 *.log
 .DS_Store
 .idea/
+
+# python runtime
+*.pyc
+*.pyo
+*.pyd

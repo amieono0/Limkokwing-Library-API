@@ -1,21 +1,31 @@
-# Limkokwing Library API
+# Library Management System API
 
-## Project Description
-A FastAPI-based library management system for Limkokwing University. This API allows users to search for books, borrow/return books, and track overdue fines.
+## Overview
+This is a simple Library Management System API built using Python for Limkokwing University.  
+It allows users to borrow, return, and check library books, as well as track overdue books and fines.
+
+The system also demonstrates asynchronous programming to simulate multiple users interacting at the same time.
 
 ## Features
-- Search books by title, author, or category
-- Borrow and return books with async support
-- Track overdue books and calculate fines ($0.50/day)
-- Multiple user support
+- View available books  
+- Borrow books  
+- Return books  
+- View borrowed books per user  
+- Check overdue books and calculate fines  
+- Simulate multiple users using async programming  
 
-## Technologies Used
-- Python 3.13
-- FastAPI
-- Uvicorn
 
-## Installation & Running
+##  Technologies Used
+- Python  
+- asyncio  
+- datetime module  
+- Dictionary-based data storage  
 
+ 
+## How It Works
+Users interact with the system through a menu. The system processes requests such as borrowing and returning books, updates records, and calculates overdue fines when necessary. Async functions are used to simulate multiple users working at the same time.
+
+
+##  How to Run
 ```bash
-pip install fastapi uvicorn
-python -m uvicorn main:app --reload --port 5000
+python main.py
